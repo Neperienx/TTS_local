@@ -1,4 +1,4 @@
-"""CLI entry point for generating speech audio files from text files using Coqui XTTS-v2."""
+"""CLI entry point for generating speech audio files from text files."""
 from __future__ import annotations
 
 import argparse
@@ -7,9 +7,10 @@ from typing import Optional
 
 import torch
 from TTS.api import TTS
+import soundfile as sf
 
+DEFAULT_ENGINE = "xtts"
 DEFAULT_MODEL = "tts_models/multilingual/multi-dataset/xtts_v2"
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -31,6 +32,15 @@ def parse_args() -> argparse.Namespace:
         help="Destination path for the generated WAV file (default: outputs/xtts_output.wav).",
     )
     parser.add_argument(
+        "--engine",
+        choices=["xtts", "bark"],
+        default=DEFAULT_ENGINE,
+        help=(
+            "Inference backend to use. XTTS relies on Coqui models while Bark uses"
+            " the Suno Bark neural codec architecture (default: xtts)."
+        ),
+    )
+    parser.add_argument(
         "--model-name",
         default=DEFAULT_MODEL,
         help=f"Coqui model identifier to load (default: {DEFAULT_MODEL}).",
@@ -47,6 +57,14 @@ def parse_args() -> argparse.Namespace:
         help=(
             "Optional path to a reference speaker WAV file for voice cloning. "
             "If omitted, the default XTTS reference voice will be used."
+        ),
+    )
+    parser.add_argument(
+        "--history-prompt",
+        default=None,
+        help=(
+            "Optional Bark history prompt to control the speaker/tone. This is only"
+            " used when --engine bark is selected."
         ),
     )
     parser.add_argument(
@@ -85,7 +103,7 @@ def ensure_output_path(path: Path, overwrite: bool) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
 
-def synthesize_speech(
+def synthesize_with_xtts(
     text: str,
     output_file: Path,
     model_name: str,
@@ -103,6 +121,61 @@ def synthesize_speech(
         language=language,
         speaker_wav=speaker_wav_path,
         gpu=use_gpu,
+    )
+
+
+def synthesize_with_bark(
+    text: str,
+    output_file: Path,
+    history_prompt: Optional[str],
+    device: str,
+) -> None:
+    try:
+        from bark import SAMPLE_RATE, generate_audio, preload_models
+    except ImportError as exc:  # pragma: no cover - guidance for missing optional dep
+        raise RuntimeError(
+            "Bark support requires the optional 'bark' dependency. Install it via "
+            "`pip install git+https://github.com/suno-ai/bark.git` or another Bark "
+            "distribution to enable --engine bark."
+        ) from exc
+
+    use_gpu = device == "cuda"
+    preload_models(
+        text_use_gpu=use_gpu,
+        coarse_use_gpu=use_gpu,
+        fine_use_gpu=use_gpu,
+        codec_use_gpu=use_gpu,
+    )
+    audio_array = generate_audio(text, history_prompt=history_prompt)
+    sf.write(output_file, audio_array, SAMPLE_RATE)
+
+
+def synthesize_speech(
+    text: str,
+    output_file: Path,
+    model_name: str,
+    language: str,
+    speaker_wav: Optional[Path],
+    device: str,
+    engine: str,
+    history_prompt: Optional[str],
+) -> None:
+    if engine == "bark":
+        synthesize_with_bark(
+            text=text,
+            output_file=output_file,
+            history_prompt=history_prompt,
+            device=device,
+        )
+        return
+
+    synthesize_with_xtts(
+        text=text,
+        output_file=output_file,
+        model_name=model_name,
+        language=language,
+        speaker_wav=speaker_wav,
+        device=device,
     )
 
 
@@ -125,10 +198,13 @@ def main() -> None:
         language=args.language,
         speaker_wav=args.speaker_wav,
         device=device,
+        engine=args.engine,
+        history_prompt=args.history_prompt,
     )
 
     print(
-        f"Audio successfully generated at {args.output_file.resolve()} using {args.model_name} on {device}."
+        "Audio successfully generated at"
+        f" {args.output_file.resolve()} using {args.engine.upper()} on {device}."
     )
 
 

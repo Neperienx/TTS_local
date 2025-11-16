@@ -1,16 +1,17 @@
 # Local XTTS-v2 Text-to-Speech Starter
 
 This repository contains a minimal, GPU-ready Python framework for converting
-text files into speech using [Coqui TTS](https://github.com/coqui-ai/TTS) and
-the multilingual **XTTS-v2** model. It is tailored for users with NVIDIA GPUs
-(such as the RTX 5070 Ti) who want a local workflow that is fast, configurable,
-and easy to extend.
+text files into speech using either [Coqui TTS](https://github.com/coqui-ai/TTS)
+with the multilingual **XTTS-v2** model or the
+[Suno Bark](https://github.com/suno-ai/bark) neural codec TTS system. It is
+tailored for users with NVIDIA GPUs (such as the RTX 5070 Ti) who want a local
+workflow that is fast, configurable, and easy to extend.
 
 ## Features
 
 - 🔊 Convert any UTF-8 text file into a `.wav` audio file.
 - ⚡ Automatically takes advantage of CUDA GPUs when available.
-- 🗣️ Optional voice cloning by providing your own reference speaker WAV file.
+- 🗣️ Optional voice cloning when using XTTS or Bark history prompts for Bark.
 - 🧰 Simple CLI written in Python so you can integrate it into larger projects.
 
 ## Prerequisites
@@ -39,6 +40,9 @@ pip install --upgrade pip
 
 # Install dependencies (CUDA wheels pulled from download.pytorch.org)
 pip install -r requirements.txt
+
+# Optional: install Bark if you plan to use --engine bark
+pip install "git+https://github.com/suno-ai/bark.git"
 ```
 
 > **Note:** If you need CPU-only inference, remove the extra index line and
@@ -51,13 +55,16 @@ python -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
+
+# Optional Bark backend
+pip install "git+https://github.com/suno-ai/bark.git"
 ```
 
 ## Usage
 
 The CLI entry point lives in `src/generate_audio.py`. It accepts a text file,
-produces a WAV file, and exposes knobs for language, model selection, device,
-and optional voice cloning.
+produces a WAV file, and exposes knobs for engine selection, language, model,
+device, and optional voice cloning/history prompts.
 
 ```bash
 python src/generate_audio.py \
@@ -65,6 +72,7 @@ python src/generate_audio.py \
   --output-file outputs/example.wav \
   --language en \
   --device auto \
+  --engine xtts \
   --overwrite
 ```
 
@@ -76,6 +84,13 @@ Key options:
   specific speaker. Leave unset to use the built-in XTTS voice.
 - `--device`: `auto` tries CUDA first; `cpu` forces CPU inference.
 - `--overwrite`: Allows you to regenerate a file without manually deleting it.
+- `--engine`: Choose `xtts` (default) for Coqui models or `bark` for Suno Bark.
+- `--history-prompt`: When using Bark, provide a preset (e.g., `v2/en_speaker_6`)
+  or a custom history file path.
+
+> **XTTS vs Bark.** XTTS supports explicit `--language` and `--speaker-wav`
+> cloning. Bark instead relies on the `--history-prompt` parameter to control
+> voice/tone, and currently only supports languages bundled with Bark.
 
 All generated files are standard 16-bit PCM WAV files that can be used anywhere.
 
