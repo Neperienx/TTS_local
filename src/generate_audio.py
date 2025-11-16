@@ -110,6 +110,11 @@ def main() -> None:
     args = parse_args()
     device = resolve_device(args.device)
 
+    print(
+        "Preparing to generate audio using the"
+        f" {device.upper()} device (requested: {args.device})."
+    )
+
     text = read_text_file(args.input_file)
     ensure_output_path(args.output_file, args.overwrite)
 
