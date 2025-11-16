@@ -1,0 +1,2 @@
+This is a quick sanity check for the Coqui XTTS-v2 pipeline.
+Feel free to replace this file with any text you want to convert into speech.
