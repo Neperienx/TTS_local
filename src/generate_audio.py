@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -220,6 +221,7 @@ def main() -> None:
     text = read_text_file(args.input_file)
     ensure_output_path(args.output_file, args.overwrite)
 
+    start_time = time.perf_counter()
     synthesize_speech(
         text=text,
         output_file=args.output_file,
@@ -231,11 +233,13 @@ def main() -> None:
         engine=args.engine,
         history_prompt=args.history_prompt,
     )
+    elapsed_seconds = time.perf_counter() - start_time
 
     print(
         "Audio successfully generated at"
         f" {args.output_file.resolve()} using {args.engine.upper()} on {device}."
     )
+    print(f"Generation time: {elapsed_seconds:.2f} seconds.")
 
 
 if __name__ == "__main__":

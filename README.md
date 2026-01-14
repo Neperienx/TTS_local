@@ -70,6 +70,12 @@ device, and optional voice cloning/history prompts.
 python src/generate_audio.py --input-file samples/example.txt --output-file outputs/example.wav --language en --device auto --engine xtts --overwrite
 ```
 
+For a quick multilingual comparison using the same voice, try the bundled sample:
+
+```bash
+python src/generate_audio.py --input-file samples/multilingual_voice_test.txt --output-file outputs/multilingual_voice_test.wav --language fr --device auto --engine xtts --speaker-wav samples/voice_clone_sample.wav --overwrite
+```
+
 Key options:
 
 - `--model-name`: Defaults to `tts_models/multilingual/multi-dataset/xtts_v2`.
