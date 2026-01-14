@@ -122,8 +122,6 @@ def synthesize_with_xtts(
     device: str,
 ) -> None:
     speaker_wav_path = str(speaker_wav) if speaker_wav else None
-    use_gpu = device == "cuda"
-
     tts = TTS(model_name=model_name, progress_bar=True)
     speaker_id_to_use = speaker_id
     if not speaker_wav_path and not speaker_id:
@@ -150,7 +148,6 @@ def synthesize_with_xtts(
         language=language,
         speaker_wav=speaker_wav_path,
         speaker=speaker_id_to_use,
-        gpu=use_gpu,
     )
 
 
