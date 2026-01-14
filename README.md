@@ -123,15 +123,7 @@ slideshow. Each page includes a 2-second pre-roll before the narration and a
 image. This script also emits a combined narration WAV file for reuse.
 
 ```bash
-python src/generate_story_video.py \
-  --story-file Projects/example/text.json \
-  --output-video outputs/example_story.mp4 \
-  --output-audio outputs/example_story.wav \
-  --output-dir outputs/example_story_assets \
-  --engine xtts \
-  --language en \
-  --device auto \
-  --overwrite
+python src/generate_story_video.py --story-file Projects/example/text.json --output-video outputs/example_story.mp4 --output-audio outputs/example_story.wav --output-dir outputs/example_story_assets --engine xtts --language en --device auto --overwrite
 ```
 
 > **Requirements:** The script uses `ffmpeg` to assemble the MP4. Install it via
