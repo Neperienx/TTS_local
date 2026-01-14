@@ -114,6 +114,30 @@ should reproduce that voice in the generated speech.
 
 All generated files are standard 16-bit PCM WAV files that can be used anywhere.
 
+## Building a Narrated Slideshow MP4
+
+Use `src/generate_story_video.py` to turn a JSON story (like
+`Projects/example/text.json`) and a folder of images into a narrated MP4
+slideshow. Each page includes a 2-second pre-roll before the narration and a
+5-second buffer after the narration finishes so viewers can linger on the
+image. This script also emits a combined narration WAV file for reuse.
+
+```bash
+python src/generate_story_video.py \
+  --story-file Projects/example/text.json \
+  --output-video outputs/example_story.mp4 \
+  --output-audio outputs/example_story.wav \
+  --output-dir outputs/example_story_assets \
+  --engine xtts \
+  --language en \
+  --device auto \
+  --overwrite
+```
+
+> **Requirements:** The script uses `ffmpeg` to assemble the MP4. Install it via
+> your package manager (or download it from [ffmpeg.org](https://ffmpeg.org/))
+> and ensure it is available on your `PATH`.
+
 ## Adding Your Own Text
 
 Place your text inside any UTF-8 file (for example `input/story.txt`) and pass
