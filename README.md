@@ -86,6 +86,26 @@ Key options:
 > cloning. Bark instead relies on the `--history-prompt` parameter to control
 > voice/tone, and currently only supports languages bundled with Bark.
 
+### Using a sample WAV for voice cloning
+
+To clone a voice with XTTS, supply a clean reference clip through `--speaker-wav`.
+The sample WAV should:
+
+- Be 3–10 seconds long.
+- Contain a single speaker, with no background music or heavy noise.
+- Use a standard WAV format (16-bit PCM is ideal).
+
+Place your sample WAV in the `samples/` folder (for example,
+`samples/voice_clone_sample.wav`) and run:
+
+```bash
+python src/generate_audio.py --input-file samples/example.txt --output-file outputs/voice_clone_example.wav --language en --device auto --engine xtts --speaker-wav samples/voice_clone_sample.wav --overwrite
+```
+
+If you already have a sample WAV elsewhere, you can pass its full path instead of
+placing it in `samples/`. When the reference clip is clear and consistent, XTTS
+should reproduce that voice in the generated speech.
+
 All generated files are standard 16-bit PCM WAV files that can be used anywhere.
 
 ## Adding Your Own Text
