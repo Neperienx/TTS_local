@@ -7,6 +7,7 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+import imageio_ffmpeg
 import numpy as np
 import soundfile as sf
 
@@ -147,7 +148,8 @@ def synthesize_page_audio(
 
 
 def run_ffmpeg(command: List[str]) -> None:
-    subprocess.run(command, check=True)
+    ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+    subprocess.run([ffmpeg_exe, *command[1:]], check=True)
 
 
 def build_video_segment(
