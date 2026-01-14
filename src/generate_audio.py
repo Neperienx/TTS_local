@@ -64,7 +64,8 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help=(
             "Optional speaker ID for XTTS models that ship with speaker embeddings. "
-            "Provide either --speaker-wav or --speaker-id when using XTTS."
+            "If omitted and the model includes speakers, the first available speaker"
+            " is used automatically."
         ),
     )
     parser.add_argument(
@@ -124,12 +125,31 @@ def synthesize_with_xtts(
     use_gpu = device == "cuda"
 
     tts = TTS(model_name=model_name, progress_bar=True)
+    speaker_id_to_use = speaker_id
+    if not speaker_wav_path and not speaker_id:
+        available_speakers = getattr(tts, "speakers", None) or []
+        if available_speakers:
+            speaker_id_to_use = (
+                "default"
+                if "default" in available_speakers
+                else available_speakers[0]
+            )
+            print(
+                "No reference speaker provided; using built-in speaker"
+                f" '{speaker_id_to_use}'."
+            )
+        else:
+            raise ValueError(
+                "XTTS requires a reference voice. Provide --speaker-wav or "
+                "--speaker-id (if the model supplies speaker embeddings). "
+                "Alternatively, try --engine bark for a non-cloned voice."
+            )
     tts.tts_to_file(
         text=text,
         file_path=str(output_file),
         language=language,
         speaker_wav=speaker_wav_path,
-        speaker=speaker_id,
+        speaker=speaker_id_to_use,
         gpu=use_gpu,
     )
 
@@ -202,11 +222,6 @@ def main() -> None:
 
     text = read_text_file(args.input_file)
     ensure_output_path(args.output_file, args.overwrite)
-    if args.engine == "xtts" and not args.speaker_wav and not args.speaker_id:
-        raise ValueError(
-            "XTTS requires a reference voice. Provide --speaker-wav or "
-            "--speaker-id (if the model supplies speaker embeddings)."
-        )
 
     synthesize_speech(
         text=text,
