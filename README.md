@@ -67,13 +67,7 @@ produces a WAV file, and exposes knobs for engine selection, language, model,
 device, and optional voice cloning/history prompts.
 
 ```bash
-python src/generate_audio.py \
-  --input-file samples/example.txt \
-  --output-file outputs/example.wav \
-  --language en \
-  --device auto \
-  --engine xtts \
-  --overwrite
+python src/generate_audio.py --input-file samples/example.txt --output-file outputs/example.wav --language en --device auto --engine xtts --overwrite
 ```
 
 Key options:
