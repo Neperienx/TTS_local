@@ -55,8 +55,16 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=None,
         help=(
-            "Optional path to a reference speaker WAV file for voice cloning. "
-            "If omitted, the default XTTS reference voice will be used."
+            "Path to a reference speaker WAV file for voice cloning. "
+            "Required for XTTS unless a valid --speaker-id is provided."
+        ),
+    )
+    parser.add_argument(
+        "--speaker-id",
+        default=None,
+        help=(
+            "Optional speaker ID for XTTS models that ship with speaker embeddings. "
+            "Provide either --speaker-wav or --speaker-id when using XTTS."
         ),
     )
     parser.add_argument(
@@ -109,6 +117,7 @@ def synthesize_with_xtts(
     model_name: str,
     language: str,
     speaker_wav: Optional[Path],
+    speaker_id: Optional[str],
     device: str,
 ) -> None:
     speaker_wav_path = str(speaker_wav) if speaker_wav else None
@@ -120,6 +129,7 @@ def synthesize_with_xtts(
         file_path=str(output_file),
         language=language,
         speaker_wav=speaker_wav_path,
+        speaker=speaker_id,
         gpu=use_gpu,
     )
 
@@ -156,6 +166,7 @@ def synthesize_speech(
     model_name: str,
     language: str,
     speaker_wav: Optional[Path],
+    speaker_id: Optional[str],
     device: str,
     engine: str,
     history_prompt: Optional[str],
@@ -175,6 +186,7 @@ def synthesize_speech(
         model_name=model_name,
         language=language,
         speaker_wav=speaker_wav,
+        speaker_id=speaker_id,
         device=device,
     )
 
@@ -190,6 +202,11 @@ def main() -> None:
 
     text = read_text_file(args.input_file)
     ensure_output_path(args.output_file, args.overwrite)
+    if args.engine == "xtts" and not args.speaker_wav and not args.speaker_id:
+        raise ValueError(
+            "XTTS requires a reference voice. Provide --speaker-wav or "
+            "--speaker-id (if the model supplies speaker embeddings)."
+        )
 
     synthesize_speech(
         text=text,
@@ -197,6 +214,7 @@ def main() -> None:
         model_name=args.model_name,
         language=args.language,
         speaker_wav=args.speaker_wav,
+        speaker_id=args.speaker_id,
         device=device,
         engine=args.engine,
         history_prompt=args.history_prompt,
